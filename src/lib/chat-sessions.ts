@@ -43,7 +43,13 @@ export function parseChatSessions(raw: string | null, fallback: ChatSession): Ch
   try {
     const value: unknown = JSON.parse(raw);
     if (!Array.isArray(value)) return [fallback];
-    const sessions = value.filter(isChatSession).sort((a, b) => b.updatedAt - a.updatedAt);
+    const sessions = value
+      .filter(isChatSession)
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .filter((session, index, all) => {
+        if (session.title !== '新对话' || session.messages.length > 0) return true;
+        return all.findIndex((candidate) => candidate.title === '新对话' && candidate.messages.length === 0) === index;
+      });
     return sessions.length > 0 ? sessions : [fallback];
   } catch {
     return [fallback];

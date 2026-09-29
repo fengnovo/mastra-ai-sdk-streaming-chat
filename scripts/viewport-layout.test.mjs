@@ -71,6 +71,11 @@ test('exposes a separate delete action for every session', () => {
   assert.match(appShell, /onDeleteSession=\{deleteSession\}/);
 });
 
+test('binds chat messages and titles to the active session', () => {
+  assert.match(chatPanel, /const threadId = session\.id/);
+  assert.doesNotMatch(chatPanel, /function getThreadId/);
+});
+
 test('starts with a collapsed workflow panel that can be expanded and collapsed', () => {
   assert.match(appShell, /const \[workflowOpen, setWorkflowOpen\] = useState\(false\)/);
   assert.match(appShell, /workflowOpen \? 'workspace-grid workflow-open' : 'workspace-grid workflow-collapsed'/);

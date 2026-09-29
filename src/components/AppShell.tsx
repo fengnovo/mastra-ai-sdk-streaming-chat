@@ -69,10 +69,18 @@ export function AppShell() {
     sessions.find((session) => session.id === activeSessionId) ?? sessions[0];
 
   const createNewSession = useCallback(() => {
+    const emptySession = sessions.find(
+      (session) => session.title === '新对话' && session.messages.length === 0,
+    );
+    if (emptySession) {
+      setActiveSessionId(emptySession.id);
+      return;
+    }
+
     const session = createChatSession(crypto.randomUUID());
     setSessions((current) => [session, ...current].slice(0, 20));
     setActiveSessionId(session.id);
-  }, []);
+  }, [sessions]);
 
   const updateSession = useCallback(
     (

@@ -14,16 +14,6 @@ type ChatPanelProps = {
   onSessionMessagesChange: (sessionId: string, messages: UIMessage[]) => void;
 };
 
-function getThreadId() {
-  if (typeof window === 'undefined') return 'ssr-thread';
-  const key = 'mastra-demo-thread-id';
-  const existing = window.localStorage.getItem(key);
-  if (existing) return existing;
-  const value = crypto.randomUUID();
-  window.localStorage.setItem(key, value);
-  return value;
-}
-
 const examples = [
   '查询订单 A1001，然后计算订单金额加 10% 服务费，一步一步调用工具。',
   '请委托 research 子代理搜索 Mastra 最近一个版本有什么新能力。',
@@ -37,7 +27,7 @@ export function ChatPanel({
   onSessionMessagesChange,
 }: ChatPanelProps) {
   const [input, setInput] = useState('');
-  const [threadId] = useState(getThreadId);
+  const threadId = session.id;
   const scrollAnchor = useRef<HTMLDivElement>(null);
 
   const transport = useMemo(
