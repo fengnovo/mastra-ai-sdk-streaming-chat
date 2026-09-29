@@ -145,9 +145,6 @@ export function ChatPanel({
                 {message.role === 'user' ? '你' : 'M'}
               </div>
               <div className='bubble'>
-                <div className='message-role'>
-                  {message.role === 'user' ? 'USER' : 'MASTRA AGENT'}
-                </div>
                 {message.parts.map((part, index) => (
                   <MessagePart key={`${message.id}-${index}`} part={part} />
                 ))}

@@ -8,6 +8,7 @@ import { WorkflowPanel } from '@/components/WorkflowPanel';
 import {
   CHAT_SESSIONS_STORAGE_KEY,
   createChatSession,
+  removeChatSession,
   parseChatSessions,
   updateChatSession,
   type ChatSession,
@@ -89,6 +90,28 @@ export function AppShell() {
     [updateSession],
   );
 
+  const deleteSession = useCallback(
+    (sessionId: string) => {
+      const deletedIndex = sessions.findIndex((session) => session.id === sessionId);
+      if (deletedIndex < 0) return;
+
+      const remaining = removeChatSession(sessions, sessionId);
+      if (remaining.length === 0) {
+        const replacement = createChatSession(crypto.randomUUID());
+        setSessions([replacement]);
+        setActiveSessionId(replacement.id);
+        return;
+      }
+
+      setSessions(remaining);
+      if (sessionId === activeSessionId) {
+        const nextActive = remaining[Math.min(deletedIndex, remaining.length - 1)];
+        setActiveSessionId(nextActive.id);
+      }
+    },
+    [activeSessionId, sessions],
+  );
+
   return (
     <main className='app-shell'>
       <FeatureRail
@@ -96,6 +119,7 @@ export function AppShell() {
         activeSessionId={activeSession.id}
         onNewSession={createNewSession}
         onSelectSession={setActiveSessionId}
+        onDeleteSession={deleteSession}
       />
       <div className='workspace'>
         {!health?.aiConfigured && health ? (

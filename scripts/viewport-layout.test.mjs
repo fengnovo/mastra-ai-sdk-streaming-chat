@@ -4,6 +4,9 @@ import test from 'node:test';
 
 const appShell = await readFile(new URL('../src/components/AppShell.tsx', import.meta.url), 'utf8');
 const featureRail = await readFile(new URL('../src/components/FeatureRail.tsx', import.meta.url), 'utf8');
+const assistantMessage = await readFile(new URL('../src/components/AssistantMessage.tsx', import.meta.url), 'utf8');
+const chatPanel = await readFile(new URL('../src/components/ChatPanel.tsx', import.meta.url), 'utf8');
+const executionTrace = await readFile(new URL('../src/components/ExecutionTrace.tsx', import.meta.url), 'utf8');
 const workflowPanel = await readFile(new URL('../src/components/WorkflowPanel.tsx', import.meta.url), 'utf8');
 const css = await readFile(new URL('../src/app/globals.css', import.meta.url), 'utf8');
 const nextConfig = await readFile(new URL('../next.config.ts', import.meta.url), 'utf8');
@@ -40,6 +43,32 @@ test('uses compact spacing around the Mastra brand', () => {
   assert.match(rule('.feature-rail'), /padding:\s*8px 18px 16px/);
   assert.match(rule('.mastra-brand'), /padding:\s*0 6px 8px/);
   assert.match(rule('.session-heading'), /padding:\s*10px 6px 8px/);
+});
+
+test('uses Chinese labels in the highlighted chat surfaces', () => {
+  assert.match(featureRail, /<strong>智能体工作台<\/strong>/);
+  assert.doesNotMatch(featureRail, /<span>对话与任务执行<\/span>/);
+  assert.doesNotMatch(chatPanel, /message-role/);
+  assert.doesNotMatch(assistantMessage, /message-role/);
+  assert.doesNotMatch(executionTrace, /trace-kicker|FINAL ANSWER|message-role/);
+  assert.doesNotMatch(featureRail, /<strong>MASTRA<\/strong>/);
+  assert.doesNotMatch(assistantMessage, /MASTRA AGENT/);
+  assert.doesNotMatch(executionTrace, /EXECUTION TRACE|Reasoning Summary/);
+});
+
+test('keeps long session titles readable in the left rail', () => {
+  assert.match(rule('.session-select'), /align-items:\s*flex-start/);
+  assert.match(rule('.session-copy strong'), /display:\s*-webkit-box/);
+  assert.match(rule('.session-copy strong'), /-webkit-line-clamp:\s*2/);
+  assert.match(rule('.session-copy strong'), /white-space:\s*normal/);
+  assert.match(rule('.session-copy'), /overflow:\s*hidden/);
+});
+
+test('exposes a separate delete action for every session', () => {
+  assert.match(featureRail, /onDeleteSession/);
+  assert.match(featureRail, /className='session-delete'/);
+  assert.match(featureRail, /aria-label=\{`删除会话：\$\{session.title\}`\}/);
+  assert.match(appShell, /onDeleteSession=\{deleteSession\}/);
 });
 
 test('starts with a collapsed workflow panel that can be expanded and collapsed', () => {

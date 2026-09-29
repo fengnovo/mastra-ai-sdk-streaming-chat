@@ -14,7 +14,6 @@ export function AssistantMessage({
     <article className="message assistant">
       <div className="avatar">M</div>
       <div className="bubble assistant-bubble">
-        <div className="message-role">MASTRA AGENT</div>
         <ExecutionTrace parts={message.parts} isStreaming={isStreaming} />
       </div>
     </article>

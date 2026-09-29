@@ -1,4 +1,5 @@
 import { LibSQLStore } from '@mastra/libsql';
+import { resolveDatabaseUrl } from './database-url';
 
 /**
  * A single durable storage is shared by:
@@ -9,5 +10,5 @@ import { LibSQLStore } from '@mastra/libsql';
  */
 export const storage = new LibSQLStore({
   id: 'app-storage',
-  url: process.env.MASTRA_DB_URL ?? 'file:./data/mastra.db',
+  url: resolveDatabaseUrl(process.env.MASTRA_DB_URL ?? 'file:./data/mastra.db'),
 });

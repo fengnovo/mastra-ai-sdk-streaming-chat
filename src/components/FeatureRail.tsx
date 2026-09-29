@@ -5,6 +5,7 @@ type FeatureRailProps = {
   activeSessionId: string;
   onNewSession: () => void;
   onSelectSession: (sessionId: string) => void;
+  onDeleteSession: (sessionId: string) => void;
 };
 
 export function FeatureRail({
@@ -12,14 +13,14 @@ export function FeatureRail({
   activeSessionId,
   onNewSession,
   onSelectSession,
+  onDeleteSession,
 }: FeatureRailProps) {
   return (
     <aside className='feature-rail'>
       <div className='mastra-brand'>
         <div className='brand-mark'>M</div>
         <div>
-          <strong>MASTRA</strong>
-          <span>智能体工作台</span>
+          <strong>智能体工作台</strong>
         </div>
       </div>
 
@@ -37,27 +38,40 @@ export function FeatureRail({
 
       <nav className='session-list' aria-label='聊天会话列表'>
         {sessions.map((session) => (
-          <button
-            type='button'
+          <div
             className={
               session.id === activeSessionId
                 ? 'session-item active'
                 : 'session-item'
             }
             key={session.id}
-            onClick={() => onSelectSession(session.id)}
-            aria-current={session.id === activeSessionId ? 'page' : undefined}
           >
-            <span className='session-bubble' aria-hidden='true' />
-            <span className='session-copy'>
-              <strong>{session.title}</strong>
-              <small>
-                {session.messages.length > 0
-                  ? `${session.messages.length} 条消息`
-                  : '暂无消息'}
-              </small>
-            </span>
-          </button>
+            <button
+              type='button'
+              className='session-select'
+              onClick={() => onSelectSession(session.id)}
+              aria-current={session.id === activeSessionId ? 'page' : undefined}
+            >
+              <span className='session-bubble' aria-hidden='true' />
+              <span className='session-copy'>
+                <strong>{session.title}</strong>
+                <small>
+                  {session.messages.length > 0
+                    ? `${session.messages.length} 条消息`
+                    : '暂无消息'}
+                </small>
+              </span>
+            </button>
+            <button
+              type='button'
+              className='session-delete'
+              onClick={() => onDeleteSession(session.id)}
+              aria-label={`删除会话：${session.title}`}
+              title='删除会话'
+            >
+              删除
+            </button>
+          </div>
         ))}
       </nav>
     </aside>

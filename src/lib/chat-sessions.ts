@@ -60,3 +60,7 @@ export function updateChatSession(
     .map(session => (session.id === id ? { ...session, ...patch, updatedAt: now } : session))
     .sort((a, b) => b.updatedAt - a.updatedAt);
 }
+
+export function removeChatSession(sessions: ChatSession[], id: string): ChatSession[] {
+  return sessions.filter((session) => session.id !== id);
+}

@@ -12,7 +12,9 @@ export function resolveDatabaseUrl(
 
   const relativePath = databaseUrl.slice('file:'.length);
   const resolvedRoot = path.resolve(projectRoot);
-  const appRoot = path.basename(resolvedRoot) === '.mastra' ? path.dirname(resolvedRoot) : resolvedRoot;
+  const mastraDirectory = `${path.sep}.mastra`;
+  const mastraIndex = resolvedRoot.lastIndexOf(mastraDirectory);
+  const appRoot = mastraIndex >= 0 ? resolvedRoot.slice(0, mastraIndex) : resolvedRoot;
 
   return pathToFileURL(path.resolve(appRoot, relativePath)).href;
 }

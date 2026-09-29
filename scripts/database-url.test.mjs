@@ -17,6 +17,13 @@ test('normalizes the .mastra directory supplied by mastra dev to the project roo
   );
 });
 
+test('normalizes the bundled .mastra output directory to the project root', () => {
+  assert.equal(
+    resolveDatabaseUrl('file:./data/mastra.db', '/workspace/app/.mastra/output'),
+    'file:///workspace/app/data/mastra.db',
+  );
+});
+
 test('keeps absolute and remote database URLs unchanged', () => {
   assert.equal(resolveDatabaseUrl('file:/var/data/mastra.db', '/workspace/app'), 'file:/var/data/mastra.db');
   assert.equal(resolveDatabaseUrl('libsql://example.turso.io', '/workspace/app'), 'libsql://example.turso.io');

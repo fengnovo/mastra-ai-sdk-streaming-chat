@@ -140,7 +140,6 @@ export function ExecutionTrace({
       <details className="execution-card" open={isStreaming || toolMetas.length > 0}>
         <summary className="execution-summary-row">
           <div>
-            <span className="trace-kicker">EXECUTION TRACE</span>
             <strong>{isStreaming ? '正在执行' : '执行过程'}</strong>
           </div>
           <span className={`trace-overall ${isStreaming ? 'running' : hasFailedTool ? 'warning' : 'done'}`}>
@@ -151,7 +150,7 @@ export function ExecutionTrace({
         <div className="reasoning-summary">
           <span className="reasoning-icon">◎</span>
           <div>
-            <strong>Reasoning Summary</strong>
+            <strong>执行摘要</strong>
             <p>{makeSummary(toolMetas, isStreaming, hasText)}</p>
             <small>这里只展示可核验的执行摘要，不展示模型内部原始隐藏思维链。</small>
           </div>
@@ -230,7 +229,6 @@ export function ExecutionTrace({
       {hasText ? (
         <section className="final-answer">
           <div className="final-answer-title">
-            <span>FINAL ANSWER</span>
             <strong>最终回答</strong>
           </div>
           <div className="message-text">{text}</div>
@@ -245,7 +243,6 @@ export function PendingExecution() {
     <article className="message assistant pending-assistant">
       <div className="avatar">M</div>
       <div className="bubble">
-        <div className="message-role">MASTRA AGENT</div>
         <div className="pending-trace">
           <span className="trace-spinner" />
           <div>
