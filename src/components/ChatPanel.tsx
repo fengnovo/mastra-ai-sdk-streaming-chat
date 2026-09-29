@@ -78,6 +78,42 @@ function findPendingApproval(messages: UIMessage[]): ChatApprovalRequest | null 
   return null;
 }
 
+function hasAssistantAnswerAfterLastUser(messages: UIMessage[]): boolean {
+  let lastUserIndex = -1;
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index].role === 'user') {
+      lastUserIndex = index;
+      break;
+    }
+  }
+  return messages.slice(lastUserIndex + 1).some(
+    (message) => message.role === 'assistant' && message.parts.some(
+      (part) => part.type === 'text' && part.text.trim().length > 0,
+    ),
+  );
+}
+
+function findAssistantErrorAfterLastUser(messages: UIMessage[]): string | null {
+  let lastUserIndex = -1;
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index].role === 'user') {
+      lastUserIndex = index;
+      break;
+    }
+  }
+  for (const message of messages.slice(lastUserIndex + 1)) {
+    if (message.role !== 'assistant') continue;
+    for (const part of message.parts) {
+      const value = part as { type: string; error?: { message?: string } | string };
+      if (value.type !== 'error') continue;
+      return typeof value.error === 'string'
+        ? value.error
+        : value.error?.message ?? '后台任务执行失败。';
+    }
+  }
+  return null;
+}
+
 export function ChatPanel({
   session,
   onSessionTitleChange,
@@ -91,6 +127,7 @@ export function ChatPanel({
   const threadId = session.id;
   const scrollAnchor = useRef<HTMLDivElement>(null);
   const activeRunIdRef = useRef(session.activeRunId);
+  const reconciledRunIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     activeRunIdRef.current = session.activeRunId;
@@ -129,12 +166,17 @@ export function ChatPanel({
     status,
     stop,
     error,
+    clearError,
     setMessages,
     addToolApprovalResponse,
   } = useChat({
     id: threadId,
     messages: session.messages,
     transport,
+    // Reconnecting can replay hundreds of durable events in one burst.
+    // Coalesce React store notifications so the replay cannot hit React's
+    // nested-update limit while preserving every event in the chat state.
+    throttle: 50,
     resume: Boolean(session.activeRunId),
     onData(dataPart) {
       const part = dataPart as {
@@ -173,6 +215,10 @@ export function ChatPanel({
       }
     },
     onFinish({ messages: finishedMessages }) {
+      if (
+        reconciledRunIdRef.current &&
+        (!activeRunIdRef.current || activeRunIdRef.current === reconciledRunIdRef.current)
+      ) return;
       onSessionMessagesChange(threadId, finishedMessages);
       const pendingApproval = findPendingApproval(finishedMessages);
       if (pendingApproval) {
@@ -182,14 +228,16 @@ export function ChatPanel({
         });
       } else {
         setApprovalFromStream(null);
-        onSessionRunChange(threadId, {
-          activeRunId: undefined,
-          runStatus: 'completed',
-        });
+        // A closed observer is not proof that the detached worker finished.
+        // The run-status/history reconciliation below owns terminal state.
       }
     },
     onError() {
-      onSessionRunChange(threadId, { runStatus: 'error' });
+      // A reconnect may fail after the worker has already finished. Keep the
+      // run id so the durable history can still be recovered.
+      if (!activeRunIdRef.current) {
+        onSessionRunChange(threadId, { runStatus: 'error' });
+      }
     },
   });
 
@@ -200,6 +248,7 @@ export function ChatPanel({
   const lastMessage = messages.at(-1);
   const waitingForAssistant = isRunning && lastMessage?.role === 'user';
   const approvalRequest = approvalFromStream ?? findPendingApproval(messages);
+  const persistedError = findAssistantErrorAfterLastUser(messages);
 
   // Persist the user message immediately, so switching tabs does not lose the
   // only local copy while the detached Mastra run continues in the backend.
@@ -212,24 +261,156 @@ export function ChatPanel({
   }, [messages, onSessionMessagesChange, threadId]);
 
   useEffect(() => {
-    if (!session.activeRunId || session.messages.length > 0) return;
+    const runId = session.activeRunId;
+    if (!runId) return;
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let completedWithoutAnswer = 0;
 
-    fetch(
-      `/api/chat/threads/${encodeURIComponent(threadId)}/messages?resourceId=browser-demo-user`,
-    )
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { messages?: UIMessage[] } | null) => {
-        if (!cancelled && payload?.messages?.length) setMessages(payload.messages);
-      })
-      .catch(() => {
-        // The stream reconnect remains the source of truth if history is unavailable.
-      });
+    async function reconcile() {
+      try {
+        const statusResponse = await fetch(`/api/chat/runs/${encodeURIComponent(runId!)}`);
+        if (!statusResponse.ok) throw new Error('Unable to read run status');
+        const run = (await statusResponse.json()) as { status?: string };
+        if (cancelled) return;
 
+        if (run.status === 'completed') {
+          const historyResponse = await fetch(
+            `/api/chat/threads/${encodeURIComponent(threadId)}/messages?resourceId=browser-demo-user`,
+          );
+          if (!historyResponse.ok) throw new Error('Unable to read chat history');
+          const history = (await historyResponse.json()) as { messages?: UIMessage[] };
+          if (cancelled) return;
+
+          const serverMessages = history.messages ?? [];
+          if (findAssistantErrorAfterLastUser(serverMessages)) {
+            reconciledRunIdRef.current = runId!;
+            await stop();
+            if (cancelled) return;
+            clearError();
+            setMessages(serverMessages);
+            onSessionMessagesChange(threadId, serverMessages);
+            onSessionRunChange(threadId, {
+              activeRunId: undefined,
+              runStatus: 'error',
+            });
+            return;
+          }
+          if (hasAssistantAnswerAfterLastUser(serverMessages)) {
+            reconciledRunIdRef.current = runId!;
+            await stop();
+            if (cancelled) return;
+            clearError();
+            setMessages(serverMessages);
+            onSessionMessagesChange(threadId, serverMessages);
+            onSessionRunChange(threadId, {
+              activeRunId: undefined,
+              runStatus: 'completed',
+            });
+            return;
+          }
+          completedWithoutAnswer += 1;
+          if (completedWithoutAnswer >= 5) {
+            onSessionRunChange(threadId, {
+              activeRunId: undefined,
+              runStatus: 'error',
+            });
+            return;
+          }
+        } else if (run.status === 'failed' || run.status === 'error') {
+          onSessionRunChange(threadId, {
+            activeRunId: undefined,
+            runStatus: 'error',
+          });
+          return;
+        }
+      } catch {
+        // A temporary status/history outage must not discard the run id.
+      }
+      if (!cancelled) timer = setTimeout(() => void reconcile(), 2_000);
+    }
+
+    void reconcile();
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
-  }, [session.activeRunId, session.messages.length, setMessages, threadId]);
+  }, [session.activeRunId, setMessages, threadId]);
+
+  useEffect(() => {
+    if (
+      session.activeRunId ||
+      (session.messages.length === 0 && session.runStatus !== 'running')
+    ) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    async function discoverOrRestore() {
+      try {
+        if (session.runStatus === 'running') {
+          const activeResponse = await fetch(
+            `/api/chat/runs?threadId=${encodeURIComponent(threadId)}`,
+          );
+          if (!activeResponse.ok) throw new Error('Unable to find active runs');
+          const active = (await activeResponse.json()) as {
+            runs?: Array<{ runId: string }>;
+          };
+          if (cancelled) return;
+          const runId = active.runs?.[0]?.runId;
+          if (runId) {
+            activeRunIdRef.current = runId;
+            onSessionRunChange(threadId, { activeRunId: runId, runStatus: 'running' });
+            return;
+          }
+        }
+
+        const historyResponse = await fetch(
+          `/api/chat/threads/${encodeURIComponent(threadId)}/messages?resourceId=browser-demo-user`,
+        );
+        if (!historyResponse.ok) throw new Error('Unable to read chat history');
+        const history = (await historyResponse.json()) as { messages?: UIMessage[] };
+        if (cancelled) return;
+        const serverMessages = history.messages ?? [];
+        const serverError = findAssistantErrorAfterLastUser(serverMessages);
+        const localLastUser = [...session.messages].reverse().find(
+          (message) => message.role === 'user',
+        );
+        const serverLastUser = [...serverMessages].reverse().find(
+          (message) => message.role === 'user',
+        );
+        const userText = (message: UIMessage | undefined) => message?.parts
+          .filter((part) => part.type === 'text')
+          .map((part) => part.text)
+          .join('');
+        if (
+          (session.runStatus !== 'running' ||
+            (localLastUser && userText(localLastUser) === userText(serverLastUser))) &&
+          (serverError || hasAssistantAnswerAfterLastUser(serverMessages)) &&
+          (serverMessages.length > session.messages.length ||
+            !hasAssistantAnswerAfterLastUser(session.messages))
+        ) {
+          setMessages(serverMessages);
+          onSessionMessagesChange(threadId, serverMessages);
+          onSessionRunChange(threadId, {
+            activeRunId: undefined,
+            runStatus: serverError ? 'error' : 'completed',
+          });
+          return;
+        }
+      } catch {
+        // Keep the local conversation usable during a temporary API outage.
+      }
+      if (!cancelled && session.runStatus === 'running') {
+        timer = setTimeout(() => void discoverOrRestore(), 2_000);
+      }
+    }
+
+    void discoverOrRestore();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [session.activeRunId, session.runStatus, threadId]);
 
   useEffect(() => {
     scrollAnchor.current?.scrollIntoView({
@@ -240,6 +421,12 @@ export function ChatPanel({
   async function submit(text: string) {
     const value = text.trim();
     if (!value || isRunning) return;
+    reconciledRunIdRef.current = null;
+    onSessionRunChange(threadId, { runStatus: 'running' });
+    onSessionMessagesChange(threadId, [
+      ...messages,
+      { id: crypto.randomUUID(), role: 'user', parts: [{ type: 'text', text: value }] },
+    ]);
     if (session.title === '新对话') {
       onSessionTitleChange(threadId, createSessionTitle(value));
     }
@@ -351,8 +538,8 @@ export function ChatPanel({
         })}
 
         {waitingForAssistant ? <PendingExecution /> : null}
-        {error ? (
-          <div className='error-banner'>请求失败：{error.message}</div>
+        {error || persistedError ? (
+          <div className='error-banner'>请求失败：{persistedError ?? error?.message}</div>
         ) : null}
         <div ref={scrollAnchor} />
       </div>

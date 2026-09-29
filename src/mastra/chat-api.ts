@@ -243,6 +243,22 @@ async function handleRunStatus(c: any) {
   }
 }
 
+async function handleActiveRuns(c: any) {
+  const threadId = c.req.query('threadId');
+  if (!threadId) return Response.json({ error: 'threadId is required' }, { status: 400 });
+
+  try {
+    const agent = getChatAgent(c.get('mastra'));
+    const { runs } = await agent.listActiveRuns({ threadId });
+    return Response.json({ runs });
+  } catch (error) {
+    return Response.json(
+      { error: error instanceof Error ? error.message : 'Failed to find active runs' },
+      { status: 500 },
+    );
+  }
+}
+
 async function handleRunCancel(c: any) {
   const runId = c.req.param('runId');
   if (!runId) return Response.json({ error: 'runId is required' }, { status: 400 });
@@ -296,6 +312,11 @@ async function handleThreadMessages(c: any) {
 }
 
 export const chatApiRoutes: ApiRoute[] = [
+  registerApiRoute('/ai/chat/runs', {
+    method: 'GET',
+    requiresAuth: false,
+    handler: handleActiveRuns,
+  }),
   registerApiRoute('/ai/chat', {
     method: 'POST',
     requiresAuth: false,

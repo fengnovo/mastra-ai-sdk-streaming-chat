@@ -8,9 +8,9 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "MASTRA_WORKERS=false next dev",
-    "local:start": "node scripts/start-local.mjs",
-    "local:stop": "node scripts/stop-local.mjs",
+    "dev:1": "MASTRA_WORKERS=false next dev",
+    "dev": "node scripts/start-local.mjs",
+    "dev:close": "node scripts/stop-local.mjs",
     "build": "next build",
     "start": "MASTRA_WORKERS=false next start",
     "typecheck": "tsc --noEmit",

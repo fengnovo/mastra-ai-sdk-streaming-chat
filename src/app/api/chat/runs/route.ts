@@ -11,3 +11,18 @@ export async function POST(request: Request) {
     return mastraProxyError(error);
   }
 }
+
+export async function GET(request: Request) {
+  try {
+    const threadId = new URL(request.url).searchParams.get('threadId');
+    if (!threadId) {
+      return Response.json({ error: 'threadId is required' }, { status: 400 });
+    }
+    return await proxyToMastra(
+      request,
+      `/ai/chat/runs?threadId=${encodeURIComponent(threadId)}`,
+    );
+  } catch (error) {
+    return mastraProxyError(error);
+  }
+}

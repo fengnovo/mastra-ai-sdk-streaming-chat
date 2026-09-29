@@ -1,4 +1,4 @@
-# Mastra × AI SDK UI v2：Streaming Chat + Editor + Web + Files + Shell + MCP + Sub-Agent
+# Mastra × AI SDK UI：Streaming Chat + Editor + Web + Files + Shell + MCP + Sub-Agent
 
 这是上一版 `mastra-ai-sdk-streaming-chat` 的增强版，重点是让 Mastra Studio 里的 Agent 不再只是 `Memory + 2 Tools`，而是真正具备 **Tools、Editor、Workflows、Sub-agents**，并额外接入一条可实际验证的 **MCP stdio** 链路。
 
@@ -342,7 +342,7 @@ find node_modules/.pnpm -maxdepth 1 -type d -name '@mastra+core@1.71.0*'
 
 正常目标是核心 peer 环境只解析成一套。不要用 `as any` 把问题藏掉。
 
-## v3: 实时执行过程 UI
+## 11: 实时执行过程 UI
 
 聊天页面现在把 AI SDK 的 `message.parts` 组织成三层，而不是把工具卡片散落在正文里：
 

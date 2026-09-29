@@ -86,7 +86,9 @@ function makeSummary(toolMetas: ToolMeta[], isStreaming: boolean, hasText: boole
   if (toolMetas.length === 0) {
     return isStreaming
       ? '正在分析任务并选择合适的 Agent、Tool 或 Workflow。'
-      : '本次请求不需要外部执行能力，直接生成回答。';
+      : hasText
+        ? '本次请求不需要外部执行能力，直接生成回答。'
+        : '未收到最终回答；请检查任务状态或重新发送。';
   }
 
   const names = toolMetas.map(meta => classifyTool(meta.toolName));
@@ -139,7 +141,7 @@ export function ExecutionTrace({
     .join('')
     .trim();
   const hasText = text.length > 0;
-  const planningDone = toolMetas.length > 0 || hasText || !isStreaming;
+  const planningDone = toolMetas.length > 0 || hasText;
   const states = toolMetas.map(meta => normalizeState(meta, isStreaming));
   const hasFailedTool = states.some(state => state === 'failed');
   const hasWaitingTool = states.some(state => state === 'waiting');
@@ -151,17 +153,18 @@ export function ExecutionTrace({
       : isStreaming && !hasText
         ? 'running'
         : 'done';
-  const overallStatus = isStreaming ? 'running' : hasFailedTool ? 'warning' : hasWaitingTool ? 'waiting' : 'done';
+  const missingAnswer = !isStreaming && !hasText && toolMetas.length === 0;
+  const overallStatus = isStreaming ? 'running' : hasFailedTool || missingAnswer ? 'warning' : hasWaitingTool ? 'waiting' : 'done';
 
   return (
     <div className="agent-response">
       <details className="execution-card" open={isStreaming || toolMetas.length > 0}>
         <summary className="execution-summary-row">
           <div>
-            <strong>{isStreaming ? '正在执行' : hasWaitingTool ? '等待恢复' : '执行过程'}</strong>
+            <strong>{isStreaming ? '正在执行' : missingAnswer ? '执行未完成' : hasWaitingTool ? '等待恢复' : '执行过程'}</strong>
           </div>
           <span className={`trace-overall ${overallStatus}`}>
-            {isStreaming ? 'LIVE' : hasFailedTool ? 'WITH ERROR' : hasWaitingTool ? 'WAITING' : 'DONE'}
+            {isStreaming ? 'LIVE' : missingAnswer ? '未完成' : hasFailedTool ? 'WITH ERROR' : hasWaitingTool ? 'WAITING' : 'DONE'}
           </span>
         </summary>
 

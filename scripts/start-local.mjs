@@ -48,14 +48,14 @@ async function main() {
     if (!(await isPortOpen(port, url.hostname))) throw new Error(`${name} 指向的服务未运行。`);
   }
 
-  console.log('正在构建 Mastra Worker…');
-  const build = spawnSync('pnpm', ['run', 'mastra:worker:build'], {
+  console.log('正在构建 Mastra API 与 Worker…');
+  const build = spawnSync('pnpm', ['run', 'mastra:local:build'], {
     cwd: projectRoot,
     env,
     stdio: 'inherit',
   });
   if (build.error) throw build.error;
-  if (build.status !== 0) throw new Error('Worker 构建失败。');
+  if (build.status !== 0) throw new Error('Mastra API 或 Worker 构建失败。');
 
   const state = { startedAt: new Date().toISOString(), services: [] };
   try {
