@@ -1,10 +1,14 @@
 import type { UIMessage } from 'ai';
 
+export type ChatRunStatus = 'idle' | 'running' | 'completed' | 'error';
+
 export type ChatSession = {
   id: string;
   title: string;
   updatedAt: number;
   messages: UIMessage[];
+  activeRunId?: string;
+  runStatus?: ChatRunStatus;
 };
 
 export const CHAT_SESSIONS_STORAGE_KEY = 'mastra-demo-chat-sessions-v1';
@@ -59,7 +63,7 @@ export function parseChatSessions(raw: string | null, fallback: ChatSession): Ch
 export function updateChatSession(
   sessions: ChatSession[],
   id: string,
-  patch: Partial<Pick<ChatSession, 'title' | 'messages'>>,
+  patch: Partial<Pick<ChatSession, 'title' | 'messages' | 'activeRunId' | 'runStatus'>>,
   now = Date.now(),
 ): ChatSession[] {
   return sessions

@@ -85,7 +85,7 @@ export function AppShell() {
   const updateSession = useCallback(
     (
       sessionId: string,
-      patch: Partial<Pick<ChatSession, 'title' | 'messages'>>,
+      patch: Partial<Pick<ChatSession, 'title' | 'messages' | 'activeRunId' | 'runStatus'>>,
     ) => {
       setSessions((current) => updateChatSession(current, sessionId, patch));
     },
@@ -128,6 +128,8 @@ export function AppShell() {
         onNewSession={createNewSession}
         onSelectSession={setActiveSessionId}
         onDeleteSession={deleteSession}
+        workflowOpen={workflowOpen}
+        onWorkflowOpenChange={setWorkflowOpen}
       />
       <div className='workspace'>
         {!health?.aiConfigured && health ? (
@@ -136,13 +138,7 @@ export function AppShell() {
             AI_API_KEY；其余功能已接好。
           </div>
         ) : null}
-        <div
-          className={
-            workflowOpen
-              ? 'workspace-grid workflow-open'
-              : 'workspace-grid workflow-collapsed'
-          }
-        >
+        <div className='workspace-grid'>
           <ChatPanel
             key={activeSession.id}
             session={activeSession}
@@ -150,12 +146,16 @@ export function AppShell() {
               updateSession(sessionId, { title })
             }
             onSessionMessagesChange={updateSessionMessages}
-          />
-          <WorkflowPanel
-            expanded={workflowOpen}
-            onExpandedChange={setWorkflowOpen}
+            onSessionRunChange={(sessionId, patch) =>
+              updateSession(sessionId, patch)
+            }
           />
         </div>
+        {workflowOpen ? (
+          <div className='workflow-drawer'>
+            <WorkflowPanel onExpandedChange={setWorkflowOpen} />
+          </div>
+        ) : null}
       </div>
     </main>
   );

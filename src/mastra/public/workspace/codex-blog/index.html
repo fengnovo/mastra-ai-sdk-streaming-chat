@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>~/dev-log — 你好，我是林澈</title>
+<meta name="description" content="一个用编辑器+终端美学构建的个人博客" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 背景网格 + 光晕装饰 -->
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <!-- ===== 编辑器窗口：标题栏 ===== -->
+  <header class="editor-window">
+    <div class="titlebar">
+      <div class="dots">
+        <span class="dot dot--red"></span>
+        <span class="dot dot--yellow"></span>
+        <span class="dot dot--green"></span>
+      </div>
+      <div class="tabs">
+        <div class="tab tab--active">
+          <span class="tab__icon">◆</span>
+          <span class="tab__name">index.html</span>
+          <span class="tab__close">×</span>
+        </div>
+        <div class="tab">
+          <span class="tab__icon">◇</span>
+          <span class="tab__name">style.css</span>
+        </div>
+        <div class="tab">
+          <span class="tab__icon">◇</span>
+          <span class="tab__name">about.md</span>
+        </div>
+      </div>
+      <div class="titlebar__right">main ¹ / 3 files</div>
+    </div>
+
+    <!-- ===== Hero 区域，带行号装饰 ===== -->
+    <section class="hero">
+      <div class="gutter" aria-hidden="true">
+        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+        <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+      </div>
+      <div class="hero__code">
+        <pre class="code-block"><code><span class="c-comment">// 你好，我是林澈 👋</span>
+<span class="c-comment">/* 一个喜欢把终端当 IDE 用的全栈工程师 */</span>
+
+<span class="c-key">const</span> <span class="c-fn">dev</span> = {
+  <span class="c-prop">name</span>: <span class="c-str">"林澈"</span>,
+  <span class="c-prop">role</span>: <span class="c-str">"全栈工程师 / 独立开发者"</span>,
+  <span class="c-prop">stack</span>: [<span class="c-str">"TypeScript"</span>, <span class="c-str">"Go"</span>, <span class="c-str">"Rust"</span>],
+  <span class="c-prop">theme</span>: <span class="c-str">"dark"</span>,
+};
+
+<span class="c-fn">dev</span>.<span class="c-fn">say</span>(<span class="c-str">`写代码，也写一点点光和诗。`</span>)<span class="c-punct">;</span></code></pre>
+        <h1 class="hero__title">
+          在<span class="grad">深色终端</span>里，记录构建的过程
+        </h1>
+        <p class="hero__tagline">
+          <span class="prompt">$</span>
+          <span id="typed" class="typed"></span><span class="caret" aria-hidden="true"></span>
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#posts">阅读文章 →</a>
+          <a class="btn btn--ghost" href="#about">$ whoami</a>
+        </div>
+      </div>
+    </section>
+  </header>
+
+  <!-- ===== 文章列表 ===== -->
+  <main class="container">
+    <section id="posts" class="section">
+      <h2 class="section__title">
+        <span class="gutter-num">L42</span>
+        <span class="section__hash">#</span> 文章列表
+        <span class="section__meta">// 共 3 篇，按时间倒序</span>
+      </h2>
+
+      <div class="post-list">
+        <article class="post-card">
+          <div class="post-card__head">
+            <span class="post-card__file">post-03.md</span>
+            <time class="post-card__date" datetime="2024-11-18">2024-11-18</time>
+          </div>
+          <h3 class="post-card__title">
+            <a href="#posts">用 Mastra 构建可流式输出的 AI Agent</a>
+          </h3>
+          <p class="post-card__excerpt">
+            从一次真实需求出发，聊聊如何把「工具调用 + 流式响应」串起来，
+            让 Agent 在浏览器里像打字机一样吐字，而不是等三秒钟一次性返回。
+          </p>
+          <ul class="tags">
+            <li class="tag tag--cyan">#AI</li>
+            <li class="tag tag--purple">#TypeScript</li>
+            <li class="tag tag--cyan">#Streaming</li>
+          </ul>
+        </article>
+
+        <article class="post-card">
+          <div class="post-card__head">
+            <span class="post-card__file">post-02.md</span>
+            <time class="post-card__date" datetime="2024-10-02">2024-10-02</time>
+          </div>
+          <h3 class="post-card__title">
+            <a href="#posts">我为什么把终端配置成第二大脑</a>
+          </h3>
+          <p class="post-card__excerpt">
+            tmux、fzf、ripgrep 与一套顺手的面板，把重复劳动压缩成一次按键。
+            这篇文章记录我三年来的 dotfiles 演进，以及那些踩过的坑。
+          </p>
+          <ul class="tags">
+            <li class="tag tag--purple">#Terminal</li>
+            <li class="tag tag--cyan">#Productivity</li>
+            <li class="tag tag--purple">#Dotfiles</li>
+          </ul>
+        </article>
+
+        <article class="post-card">
+          <div class="post-card__head">
+            <span class="post-card__file">post-01.md</span>
+            <time class="post-card__date" datetime="2024-08-21">2024-08-21</time>
+          </div>
+          <h3 class="post-card__title">
+            <a href="#posts">Rust 所有权模型，用大白话讲一遍</a>
+          </h3>
+          <p class="post-card__excerpt">
+            借用检查器不是敌人。本文用「图书馆借书」的比喻，把所有权、借用与生命周期
+            拆成能记住的直觉，最后附一段能跑的最小示例。
+          </p>
+          <ul class="tags">
+            <li class="tag tag--cyan">#Rust</li>
+            <li class="tag tag--purple">#Memory</li>
+            <li class="tag tag--cyan">#Beginner</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== 关于区块：终端风格 ===== -->
+    <section id="about" class="section">
+      <h2 class="section__title">
+        <span class="gutter-num">L87</span>
+        <span class="section__hash">#</span> 关于
+        <span class="section__meta">// ~/about.md</span>
+      </h2>
+
+      <div class="terminal" role="region" aria-label="终端风格的关于信息">
+        <div class="terminal__bar">
+          <span class="terminal__title">zsh — 80×24</span>
+        </div>
+        <div class="terminal__body">
+          <p><span class="prompt">$</span> <span class="cmd">whoami</span></p>
+          <p class="out">林澈 (Lin Che) — 全栈工程师，目前在做一个开发者工具产品。</p>
+
+          <p><span class="prompt">$</span> <span class="cmd">cat skills.txt</span></p>
+          <p class="out">
+            ├── 前端&nbsp;: TypeScript / React / 设计系统<br />
+            ├── 后端&nbsp;: Node.js / Go / PostgreSQL<br />
+            └── 其他&nbsp;: Rust · CLI 工具 · 性能调优
+          </p>
+
+          <p><span class="prompt">$</span> <span class="cmd">echo $CONTACT</span></p>
+          <p class="out">
+            ✉&nbsp; hello@linche.dev&nbsp;&nbsp;·&nbsp;&nbsp;🐙&nbsp; github.com/linche
+          </p>
+
+          <p><span class="prompt">$</span> <span class="cmd">uptime --since-blogging</span></p>
+          <p class="out">保持写作 5 年 3 个月，累计 128 篇。<span class="caret" aria-hidden="true"></span></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== 页脚 ===== -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <p class="footer__line">
+        <span class="prompt">$</span> exit 0
+        <span class="footer__hint">// 感谢阅读，欢迎交流</span>
+      </p>
+      <p class="footer__copy">
+        © <span id="year">2024</span> 林澈 · Built with plain HTML &amp; CSS · 深色主题由
+        <span class="grad">#56d4dd → #a371f7</span> 驱动
+      </p>
+      <p class="footer__keys">
+        <kbd>⌘</kbd>+<kbd>K</kbd> 搜索 &nbsp;·&nbsp; <kbd>g</kbd> then <kbd>h</kbd> 回首页
+      </p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

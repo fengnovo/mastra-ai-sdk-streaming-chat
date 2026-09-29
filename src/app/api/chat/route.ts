@@ -1,10 +1,8 @@
-import { createUIMessageStreamResponse } from 'ai';
-import { handleChatStream } from '@mastra/ai-sdk';
-import { mastra } from '@/mastra';
 import { isAIConfigured } from '@/lib/model';
+import { mastraProxyError, proxyToMastra } from '@/lib/mastra-api';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(req: Request) {
   if (!isAIConfigured) {
@@ -16,13 +14,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const params = await req.json();
-  const stream = await handleChatStream({
-    mastra,
-    agentId: 'chat-agent',
-    params,
-    version: 'v7',
-  });
-
-  return createUIMessageStreamResponse({ stream });
+  try {
+    return await proxyToMastra(req, '/ai/chat');
+  } catch (error) {
+    return mastraProxyError(error);
+  }
 }

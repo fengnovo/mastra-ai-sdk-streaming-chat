@@ -1,4 +1,5 @@
 import { Agent } from '@mastra/core/agent';
+import { createEventedAgent } from '@mastra/core/agent/durable';
 import { webFetchTool } from '@mastra/core/tools';
 import { Memory } from '@mastra/memory';
 import { chatModel } from '../../lib/model';
@@ -18,7 +19,7 @@ import { codingAgent } from './coding-agent';
 import { approvalWorkflow } from '../workflows/approval-workflow';
 import { getLocalMcpTools } from '../mcp/client';
 
-export const chatAgent = new Agent({
+const baseChatAgent = new Agent({
   id: 'chat-agent',
   name: 'Mastra Streaming Assistant',
   description:
@@ -59,3 +60,18 @@ export const chatAgent = new Agent({
     maxSteps: 16,
   },
 });
+
+/**
+ * The chat entry point is evented so the agentic loop is owned by Mastra's
+ * durable workflow engine instead of the HTTP request that started it.
+ *
+ * A disconnected browser now only loses its observer stream. The run keeps
+ * publishing to shared PubSub/cache and can be observed again by runId.
+ */
+export const chatAgent = createEventedAgent({
+  agent: baseChatAgent,
+  maxSteps: 16,
+  // createEventedAgent's public type omits this inherited option in Mastra
+  // 1.71, but the runtime accepts it and keeps reconnectable streams around.
+  cleanupTimeoutMs: 60 * 60 * 1000,
+} as never);

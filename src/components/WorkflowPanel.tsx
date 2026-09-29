@@ -12,7 +12,6 @@ type WorkflowView = {
 };
 
 type WorkflowPanelProps = {
-  expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
 };
 
@@ -31,7 +30,7 @@ function pickStatus(payload: unknown): string {
   return 'loaded';
 }
 
-export function WorkflowPanel({ expanded, onExpandedChange }: WorkflowPanelProps) {
+export function WorkflowPanel({ onExpandedChange }: WorkflowPanelProps) {
   const [task, setTask] = useState('生成一份 5 条要点的 TypeScript Agent 上线检查清单');
   const [amount, setAmount] = useState(1800);
   const [busy, setBusy] = useState(false);
@@ -121,34 +120,19 @@ export function WorkflowPanel({ expanded, onExpandedChange }: WorkflowPanelProps
     }
   }
 
-  if (!expanded) {
-    return (
-      <aside className="workflow-panel-collapsed panel">
-        <button
-          type="button"
-          className="workflow-expand-button"
-          aria-expanded={expanded}
-          aria-controls="workflow-panel-content"
-          onClick={() => onExpandedChange(true)}
-        >
-          工作流
-        </button>
-      </aside>
-    );
-  }
-
   return (
-    <section className="workflow-panel panel" id="workflow-panel-content">
+    <section className='workflow-panel panel' id='workflow-panel-content' aria-label='工作流代理'>
       <header className="panel-head compact">
         <h2>工作流代理</h2>
         <button
           type="button"
-          className="workflow-collapse-button"
-          aria-expanded={expanded}
+          className="workflow-close-button"
+          aria-label="关闭工作流面板"
+          title="关闭工作流面板"
           aria-controls="workflow-panel-content"
           onClick={() => onExpandedChange(false)}
         >
-          收起
+          <span aria-hidden='true'>×</span>
         </button>
       </header>
 
@@ -205,7 +189,7 @@ export function WorkflowPanel({ expanded, onExpandedChange }: WorkflowPanelProps
         {isSuspended ? (
           <div className="approval-box">
             <strong>需要人工审批</strong>
-            <p>当前 workflow 已写入 LibSQL，可以刷新页面、重启服务，再回来恢复。</p>
+            <p>当前工作流已写入 PostgreSQL，可以刷新页面、重启服务，再回来恢复。</p>
             <div>
               <button className="primary-button" disabled={busy} onClick={() => void resume(true)}>
                 批准并继续

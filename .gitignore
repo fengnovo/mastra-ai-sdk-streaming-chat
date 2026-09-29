@@ -6,6 +6,8 @@ node_modules
 data/*.db
 data/*.db-*
 .mastra
+.mastra-worker
+.local-runtime
 .DS_Store
 workspace/*
 !workspace/README.md

@@ -1,4 +1,5 @@
 import { LibSQLStore } from '@mastra/libsql';
+import { PostgresStore } from '@mastra/pg';
 import { resolveDatabaseUrl } from './database-url';
 
 /**
@@ -8,7 +9,14 @@ import { resolveDatabaseUrl } from './database-url';
  * - Observability traces
  * - Scorer/eval results
  */
-export const storage = new LibSQLStore({
-  id: 'app-storage',
-  url: resolveDatabaseUrl(process.env.MASTRA_DB_URL ?? 'file:./data/mastra.db'),
-});
+const databaseUrl = process.env.DATABASE_URL;
+
+export const storage = databaseUrl
+  ? new PostgresStore({
+      id: 'app-storage',
+      connectionString: databaseUrl,
+    })
+  : new LibSQLStore({
+      id: 'app-storage',
+      url: resolveDatabaseUrl(process.env.MASTRA_DB_URL ?? 'file:./data/mastra.db'),
+    });

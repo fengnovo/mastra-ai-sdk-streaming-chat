@@ -76,13 +76,16 @@ test('binds chat messages and titles to the active session', () => {
   assert.doesNotMatch(chatPanel, /function getThreadId/);
 });
 
-test('starts with a collapsed workflow panel that can be expanded and collapsed', () => {
+test('opens the workflow drawer from the left rail and closes it with an icon', () => {
   assert.match(appShell, /const \[workflowOpen, setWorkflowOpen\] = useState\(false\)/);
-  assert.match(appShell, /workflowOpen \? 'workspace-grid workflow-open' : 'workspace-grid workflow-collapsed'/);
-  assert.match(workflowPanel, /aria-expanded=\{expanded\}/);
-  assert.match(workflowPanel, /onExpandedChange\(true\)/);
+  assert.match(appShell, /className='workspace-grid'/);
+  assert.match(appShell, /className='workflow-drawer'/);
+  assert.match(featureRail, /onWorkflowOpenChange/);
+  assert.match(workflowPanel, /className="workflow-close-button"/);
+  assert.match(workflowPanel, />×</);
   assert.match(workflowPanel, /onExpandedChange\(false\)/);
-  assert.match(rule('.workspace-grid'), /grid-template-columns:\s*minmax\(0, 1fr\) 44px/);
+  assert.doesNotMatch(workflowPanel, /workflow-panel-collapsed/);
+  assert.match(rule('.workspace-grid'), /grid-template-columns:\s*minmax\(0, 1fr\)/);
 });
 
 test('does not automatically recover the previous workflow on page entry', () => {

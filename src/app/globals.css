@@ -49,10 +49,9 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .session-copy { min-width: 0; overflow: hidden; display: grid; gap: 4px; }
 .session-copy strong { display: -webkit-box; overflow: hidden; text-overflow: ellipsis; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; line-height: 1.4; font-size: 13px; }
 .session-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 10px; }
-.workspace { height: 100%; min-width: 0; min-height: 0; overflow: hidden; padding: 0; display: flex; flex-direction: column; }
+.workspace { position: relative; height: 100%; min-width: 0; min-height: 0; overflow: hidden; padding: 0; display: flex; flex-direction: column; }
 .config-warning { flex: 0 0 auto; background: #fff8e8; border: 0; border-bottom: 1px solid #f2dca8; color: #71561c; border-radius: 0; padding: 10px 14px; margin: 0; font-size: 13px; }
-.workspace-grid { min-height: 0; flex: 1 1 auto; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 0; align-items: stretch; height: 100%; }
-.workspace-grid.workflow-open { grid-template-columns: minmax(0, 1.6fr) minmax(340px, .8fr); }
+.workspace-grid { min-height: 0; flex: 1 1 auto; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; align-items: stretch; height: 100%; }
 .panel { background: var(--panel); border: 0; border-right: 1px solid rgba(215,226,230,.95); border-radius: 0; box-shadow: none; overflow: hidden; }
 .panel-head { padding: 20px 22px 17px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .panel-head.compact { padding-bottom: 13px; }
@@ -117,29 +116,32 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .text-button { background: transparent; color: var(--accent-strong); padding-left: 0; }
 .wide { width: 100%; padding: 11px; }
 
+.rail-actions { display: flex; gap: 8px; padding: 10px 6px 2px; }
+.rail-action-button { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.72); color: var(--muted); text-decoration: none; transition: border-color .16s ease, background .16s ease, color .16s ease, transform .16s ease; }
+.rail-action-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+.rail-action-button:hover, .rail-action-button.active { border-color: #9fdcea; background: var(--accent-soft); color: var(--accent-strong); transform: translateY(-1px); }
+.rail-action-button:focus-visible { outline: 3px solid rgba(50,180,215,.35); outline-offset: 2px; }
+.workflow-drawer { position: absolute; z-index: 10; inset: 0 0 0 auto; width: min(430px, calc(100% - 24px)); border-left: 1px solid #cfe1e6; background: rgba(250,253,253,.98); box-shadow: -18px 0 45px rgba(21,49,61,.14); animation: workflow-drawer-in .18s ease-out; }
 .workflow-panel { height: 100%; min-height: 0; overflow-y: auto; }
-.workflow-panel > .panel-head { min-height: 68px; align-items: center; }
-.workflow-panel-collapsed { height: 100%; min-width: 44px; border-left: 1px solid var(--line); }
-.workflow-expand-button { width: 100%; height: 100%; min-width: 44px; border: 0; background: #f8fbfc; color: var(--accent-strong); font-size: 12px; font-weight: 800; letter-spacing: .08em; writing-mode: vertical-rl; }
-.workflow-expand-button:hover { background: var(--accent-soft); }
-.workflow-expand-button:focus-visible, .workflow-collapse-button:focus-visible { outline: 3px solid rgba(50,180,215,.35); outline-offset: -3px; }
-.workflow-collapse-button { min-width: 44px; min-height: 44px; border: 1px solid var(--line); border-radius: 9px; background: #f8fbfc; color: var(--muted); font-size: 11px; font-weight: 700; }
-.workflow-collapse-button:hover { border-color: #9fdcea; background: var(--accent-soft); color: var(--accent-strong); }
-.workflow-badges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; padding: 13px 16px 4px; }
+.workflow-panel > .panel-head { min-height: 56px; align-items: center; padding: 13px 16px 11px; }
+.workflow-close-button { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 9px; background: #f8fbfc; color: var(--muted); font-size: 25px; font-weight: 400; line-height: 1; }
+.workflow-close-button:hover { border-color: #9fdcea; background: var(--accent-soft); color: var(--accent-strong); }
+.workflow-close-button:focus-visible { outline: 3px solid rgba(50,180,215,.35); outline-offset: 2px; }
+.workflow-badges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px 16px 2px; }
 .workflow-badges span { background: #f8fbfc; border: 1px solid var(--line); border-radius: 9px; padding: 8px 5px; text-align: center; font-weight: 700; font-size: 11px; }
-.workflow-form { padding: 14px 16px 12px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
-.workflow-form label > span { display: block; font-size: 10px; font-weight: 800; color: #66747c; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .08em; }
+.workflow-form { padding: 11px 16px 10px; display: grid; gap: 8px; border-bottom: 1px solid var(--line); }
+.workflow-form label > span { display: block; font-size: 10px; font-weight: 800; color: #66747c; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .08em; }
 .workflow-form textarea, .workflow-form input { width: 100%; border: 1px solid var(--line); border-radius: 9px; padding: 9px 10px; outline: none; background: white; }
 .workflow-form textarea:focus, .workflow-form input:focus { border-color: #8bd3e4; box-shadow: 0 0 0 3px rgba(50,180,215,.09); }
 .workflow-form small { color: var(--muted); font-size: 10px; margin-top: 5px; display: block; }
-.workflow-state { padding: 14px 16px 18px; }
+.workflow-state { padding: 11px 16px 16px; }
 .state-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; margin-bottom: 7px; }
 .state-row > span { color: var(--muted); }
 .state-row code { max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: #f3f6f7; padding: 4px 6px; border-radius: 6px; }
 .status-text { text-transform: uppercase; font-size: 10px; color: var(--accent-strong); }
 .status-text.error, .status-text.failed { color: var(--danger); }
 .step-track { border: 1px solid var(--line); border-radius: 12px; padding: 9px 10px; margin: 12px 0; }
-.step { display: flex; align-items: center; gap: 9px; position: relative; padding: 7px 0; color: #809096; }
+.step { display: flex; align-items: center; gap: 9px; position: relative; padding: 5px 0; color: #809096; }
 .step:not(:last-child)::after { content: ''; position: absolute; left: 10px; top: 29px; width: 1px; height: 18px; background: var(--line); }
 .step > span { width: 21px; height: 21px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line); background: white; font-size: 9px; z-index: 1; }
 .step strong { display: block; font-size: 11px; color: #5e6b70; }
@@ -151,15 +153,66 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .approval-box strong { font-size: 12px; }
 .approval-box p { margin: 4px 0 9px; color: #786024; font-size: 10px; line-height: 1.5; }
 .approval-box > div { display: flex; gap: 7px; }
+.approval-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(16, 23, 25, .42);
+  backdrop-filter: blur(4px);
+}
+.approval-modal {
+  width: min(520px, 100%);
+  border: 1px solid #cfe1e6;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 24px 70px rgba(16, 23, 25, .24);
+  padding: 22px;
+}
+.approval-modal-kicker {
+  color: #9a6d13;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+.approval-modal h2 { margin: 7px 0 8px; font-size: 20px; letter-spacing: -.02em; }
+.approval-modal > p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.approval-modal-details {
+  margin: 16px 0;
+  border: 1px solid #f0db9f;
+  border-radius: 11px;
+  background: #fffaf0;
+  padding: 12px;
+}
+.approval-modal-details strong { display: block; font-size: 13px; }
+.approval-modal-details pre {
+  max-height: 180px;
+  overflow: auto;
+  margin: 9px 0 0;
+  color: #685524;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.approval-modal-actions { display: flex; justify-content: flex-end; gap: 9px; }
+.approval-modal-actions button { min-width: 92px; }
+.approval-modal button:focus-visible { outline: 3px solid rgba(50,180,215,.38); outline-offset: 2px; }
 .raw-output { margin-top: 8px; font-size: 11px; color: var(--muted); }
 .raw-output pre { max-height: 210px; overflow: auto; background: #f6f8f9; border: 1px solid var(--line); border-radius: 9px; padding: 8px; }
 .app-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; color: #75838a; font-size: 10px; padding: 13px 5px 0; }
 
 @media (max-width: 1120px) {
   .app-shell { grid-template-columns: 220px minmax(0, 1fr); }
-  .workspace-grid.workflow-open { grid-template-columns: 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); }
   .chat-panel, .workflow-panel { min-height: auto; }
   .messages { max-height: 620px; }
+}
+
+@keyframes workflow-drawer-in {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 @media (max-width: 760px) {
   .app-shell { grid-template-columns: 1fr; grid-template-rows: minmax(170px, 28vh) minmax(0, 1fr); }

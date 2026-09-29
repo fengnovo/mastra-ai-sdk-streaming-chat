@@ -16,8 +16,8 @@
 | MCP | `MCPClient` → 本地 `MCPServer` → stdio，内置 `project-capabilities` / `mcp-echo` |
 | Sub-Agent | `research-agent` + `coding-agent`，父 Agent 可直接委托 |
 | Workflow | `approval-workflow` 挂到 `chat-agent.workflows`，可被父 Agent 当工具调用 |
-| HITL / durability | 金额 >= 1000 时 `suspend()`；LibSQL snapshot 支持 resume |
-| Memory | `@mastra/memory` + LibSQL |
+| HITL / durability | 金额 >= 1000 时 `suspend()`；PostgreSQL snapshot 支持 resume |
+| Memory | `@mastra/memory` + 独立 PostgreSQL 数据库 |
 | Evals | `response-quality` scorer |
 | Observability | Agent / Tool / MCP / Workflow traces 写入 Mastra storage |
 
@@ -51,7 +51,7 @@ strict-peer-dependencies=false
 要求 Node.js >= 22.13。
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
 至少配置模型：
@@ -74,8 +74,21 @@ TAVILY_API_KEY=tvly-xxx
 pnpm install
 pnpm check
 pnpm typecheck
-pnpm dev
 ```
+
+确认 `/Users/keen/Desktop/code/projects/chat/infra/compose.yaml` 中现有的 PostgreSQL 和 Redis 已在运行。按 [本地后台任务运行说明](docs/background-runtime.md) 创建 `mastra_streaming_chat` 数据库；本项目使用 PostgreSQL `55433` 和 Redis 逻辑库 `15`（端口 `56379`）。一条命令启动项目（自动构建 Worker）：
+
+```bash
+pnpm local:start
+```
+
+关闭本项目的 Next.js、Mastra Studio/API 和 Worker：
+
+```bash
+pnpm local:stop
+```
+
+脚本只管理由 `local:start` 启动的进程，不会关闭共用的 PostgreSQL、Redis。日志保存在 `.local-runtime/`。
 
 打开：
 
@@ -85,13 +98,7 @@ http://localhost:3000
 
 ## 4. Mastra Studio
 
-另开终端：
-
-```bash
-pnpm studio
-```
-
-打开：
+`pnpm studio` 同时提供 Mastra API 和管理界面。打开：
 
 ```text
 http://localhost:4111
@@ -301,7 +308,7 @@ export const mastra = new Mastra({
 });
 ```
 
-LibSQL 当前同时提供 agents、promptBlocks、mcpClients、workflows 等 Editor 所需 storage domains，所以这版直接共用 `storage`，不额外造第二套 DB。
+PostgreSQL 同时提供 agents、promptBlocks、mcpClients、workflows 等 Editor 所需 storage domains，本项目统一使用 `mastra_streaming_chat` 数据库。
 
 ## 8. MCP 为什么做成本地 server
 
@@ -320,20 +327,9 @@ const client = new MCPClient({
 
 Agent 其他代码不用改。
 
-## 9. Docker
+## 9. 本地基础设施
 
-```bash
-docker compose up --build
-```
-
-Docker 会持久化两个 volume：
-
-```text
-/app/data       → Mastra LibSQL
-/app/workspace  → Agent 文件/命令工作区
-```
-
-并显式复制 `mcp/local-server.mjs`，确保容器内 MCP 子进程也能启动。
+本项目不提供自己的容器部署配置。Next.js、Mastra API 和 Worker 均在本机运行，复用已启动的 PostgreSQL、Redis。启动顺序和数据库初始化见 [本地后台任务运行说明](docs/background-runtime.md)。
 
 ## 10. 建议先执行的故障定位命令
 
