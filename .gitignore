@@ -1,0 +1,12 @@
+node_modules
+.next
+.env
+.env.local
+*.log
+data/*.db
+data/*.db-*
+.mastra
+.DS_Store
+workspace/*
+!workspace/README.md
+data/

@@ -1,0 +1,62 @@
+{
+  "name": "mastra-ai-sdk-streaming-chat",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "studio": "mastra dev",
+    "mastra:build": "mastra build",
+    "mastra:start": "mastra start",
+    "mcp:local": "node mcp/local-server.mjs",
+    "check": "node scripts/check-project.mjs"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "3.0.55",
+    "@ai-sdk/react": "4.0.115",
+    "@mastra/ai-sdk": "1.10.4",
+    "@mastra/core": "1.71.0",
+    "@mastra/editor": "0.15.3",
+    "@mastra/libsql": "1.23.2",
+    "@mastra/mcp": "2.1.0",
+    "@mastra/memory": "1.29.0",
+    "@mastra/observability": "1.18.1",
+    "ai": "7.0.122",
+    "next": "16.1.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.0",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "mastra": "1.31.3",
+    "typescript": "5.8.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "@mastra/core": "1.71.0",
+      "ai": "7.0.122",
+      "zod": "4.6.5"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@mastra/core": "1.71.0",
+        "ai": "7.0.122",
+        "zod": "4.6.5"
+      }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
+  }
+}

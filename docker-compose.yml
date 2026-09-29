@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      MASTRA_DB_URL: file:/app/data/mastra.db
+      AGENT_WORKSPACE_ROOT: /app/workspace
+    volumes:
+      - mastra_data:/app/data
+      - agent_workspace:/app/workspace
+
+volumes:
+  mastra_data:
+  agent_workspace:
