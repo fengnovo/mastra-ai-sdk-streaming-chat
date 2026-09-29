@@ -1,4 +1,5 @@
 import type { UIMessage } from 'ai';
+import { MarkdownContent } from '@/components/MarkdownContent';
 
 /**
  * Lightweight fallback renderer used for non-assistant messages.
@@ -7,7 +8,7 @@ import type { UIMessage } from 'ai';
  */
 export function MessagePart({ part }: { part: UIMessage['parts'][number] }) {
   if (part.type === 'text') {
-    return <div className='message-text'>{part.text}</div>;
+    return <MarkdownContent content={part.text} />;
   }
 
   if (part.type === 'reasoning') {

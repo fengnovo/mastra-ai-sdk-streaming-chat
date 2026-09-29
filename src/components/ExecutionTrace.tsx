@@ -1,6 +1,7 @@
 'use client';
 
 import type { UIMessage } from 'ai';
+import { MarkdownContent } from '@/components/MarkdownContent';
 
 type MessagePart = UIMessage['parts'][number];
 type ToolState = 'running' | 'done' | 'failed';
@@ -231,7 +232,7 @@ export function ExecutionTrace({
           <div className="final-answer-title">
             <strong>最终回答</strong>
           </div>
-          <div className="message-text">{text}</div>
+          <MarkdownContent content={text} />
         </section>
       ) : null}
     </div>
