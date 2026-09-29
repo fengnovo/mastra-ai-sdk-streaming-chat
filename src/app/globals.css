@@ -271,6 +271,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 }
 .trace-step.done .trace-node { background: #e8f6eb; border-color: #b8dfc1; color: #397b48; }
 .trace-step.running .trace-node { background: #e6f8fc; border-color: #99dbe9; color: #188eaf; }
+.trace-step.waiting .trace-node { background: #fff9e9; border-color: #ecd69b; color: #99751e; }
 .trace-step.failed .trace-node { background: #fff0f0; border-color: #edbcbc; color: #a44343; }
 .trace-step-main { min-width: 0; }
 .trace-step-head { min-height: 25px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -281,6 +282,8 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .trace-status.done { color: #438052; }
 .trace-status.failed { color: #a44343; }
 .trace-status.running { color: #188eaf; }
+.trace-status.waiting { color: #99751e; }
+.trace-overall.waiting { color: #99751e; }
 .trace-spinner {
   width: 10px;
   height: 10px;

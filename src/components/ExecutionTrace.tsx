@@ -4,7 +4,7 @@ import type { UIMessage } from 'ai';
 import { MarkdownContent } from '@/components/MarkdownContent';
 
 type MessagePart = UIMessage['parts'][number];
-type ToolState = 'running' | 'done' | 'failed';
+type ToolState = 'running' | 'waiting' | 'done' | 'failed';
 
 type ToolMeta = {
   toolName: string;
@@ -42,7 +42,7 @@ function getToolMeta(part: MessagePart): ToolMeta | null {
   };
 }
 
-function normalizeState(meta: ToolMeta): ToolState {
+function normalizeState(meta: ToolMeta, isStreaming: boolean): ToolState {
   const value = meta.state.toLowerCase();
   if (meta.errorText || value.includes('error') || value.includes('fail')) return 'failed';
   if (
@@ -54,6 +54,7 @@ function normalizeState(meta: ToolMeta): ToolState {
   ) {
     return 'done';
   }
+  if (!isStreaming) return 'waiting';
   return 'running';
 }
 
@@ -111,9 +112,16 @@ function safeJson(value: unknown) {
   }
 }
 
-function StepState({ state }: { state: ToolState }) {
+function StepState({ state, kind }: { state: ToolState; kind?: string }) {
   if (state === 'done') return <span className="trace-status done">✓ 完成</span>;
   if (state === 'failed') return <span className="trace-status failed">× 失败</span>;
+  if (state === 'waiting') {
+    return (
+      <span className="trace-status waiting">
+        ◌ {kind === 'WORKFLOW' ? '等待人工审批' : '等待恢复'}
+      </span>
+    );
+  }
   return <span className="trace-status running"><span className="trace-spinner" />执行中</span>;
 }
 
@@ -132,19 +140,28 @@ export function ExecutionTrace({
     .trim();
   const hasText = text.length > 0;
   const planningDone = toolMetas.length > 0 || hasText || !isStreaming;
-  const hasFailedTool = toolMetas.some(meta => normalizeState(meta) === 'failed');
-  const allToolsDone = toolMetas.length > 0 && toolMetas.every(meta => normalizeState(meta) !== 'running');
-  const answerState: ToolState = hasFailedTool && !hasText ? 'failed' : isStreaming && !hasText ? 'running' : 'done';
+  const states = toolMetas.map(meta => normalizeState(meta, isStreaming));
+  const hasFailedTool = states.some(state => state === 'failed');
+  const hasWaitingTool = states.some(state => state === 'waiting');
+  const allToolsDone = states.length > 0 && states.every(state => state === 'done' || state === 'failed');
+  const answerState: ToolState = hasFailedTool && !hasText
+    ? 'failed'
+    : hasWaitingTool
+      ? 'waiting'
+      : isStreaming && !hasText
+        ? 'running'
+        : 'done';
+  const overallStatus = isStreaming ? 'running' : hasFailedTool ? 'warning' : hasWaitingTool ? 'waiting' : 'done';
 
   return (
     <div className="agent-response">
       <details className="execution-card" open={isStreaming || toolMetas.length > 0}>
         <summary className="execution-summary-row">
           <div>
-            <strong>{isStreaming ? '正在执行' : '执行过程'}</strong>
+            <strong>{isStreaming ? '正在执行' : hasWaitingTool ? '等待恢复' : '执行过程'}</strong>
           </div>
-          <span className={`trace-overall ${isStreaming ? 'running' : hasFailedTool ? 'warning' : 'done'}`}>
-            {isStreaming ? 'LIVE' : hasFailedTool ? 'WITH ERROR' : 'DONE'}
+          <span className={`trace-overall ${overallStatus}`}>
+            {isStreaming ? 'LIVE' : hasFailedTool ? 'WITH ERROR' : hasWaitingTool ? 'WAITING' : 'DONE'}
           </span>
         </summary>
 
@@ -172,7 +189,7 @@ export function ExecutionTrace({
           </div>
 
           {toolMetas.map((meta, index) => {
-            const state = normalizeState(meta);
+            const state = normalizeState(meta, isStreaming);
             const classification = classifyTool(meta.toolName);
             return (
               <div className={`trace-step ${state}`} key={`${meta.toolName}-${index}`}>
@@ -184,7 +201,7 @@ export function ExecutionTrace({
                       <strong>{classification.label}</strong>
                       {classification.label !== meta.toolName ? <code>{meta.toolName}</code> : null}
                     </div>
-                    <StepState state={state} />
+                    <StepState state={state} kind={classification.kind} />
                   </div>
 
                   {(meta.input !== undefined || meta.output !== undefined || meta.errorText) ? (
