@@ -33,11 +33,11 @@ async function main() {
   const previous = await readState();
   if (previous) {
     const occupied = await Promise.all(previous.services.map((service) => isPortOpen(service.port)));
-    if (occupied.some(Boolean)) throw new Error('本项目已有运行中的服务，请先执行 pnpm local:stop。');
+    if (occupied.some(Boolean)) throw new Error('本项目已有运行中的服务，请先执行 pnpm dev:close。');
   }
   for (const service of services) {
     if (await isPortOpen(service.port)) {
-      throw new Error(`端口 ${service.port} 已被占用。请先关闭该端口上的服务，再运行 pnpm local:start。`);
+      throw new Error(`端口 ${service.port} 已被占用。请先关闭该端口上的服务，再运行 pnpm dev。`);
     }
   }
 
@@ -81,7 +81,7 @@ async function main() {
     await stopServices(state);
     throw error;
   }
-  console.log('全部服务已启动。执行 pnpm local:stop 可关闭。日志位于 .local-runtime/。');
+  console.log('全部服务已启动。执行 pnpm dev:close 可关闭。日志位于 .local-runtime/。');
 }
 
 main().catch((error) => {

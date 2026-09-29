@@ -8,7 +8,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev:1": "MASTRA_WORKERS=false next dev",
+    "dev:1": "MASTRA_WORKERS=false next dev --port 3031",
     "dev": "node scripts/start-local.mjs",
     "dev:close": "node scripts/stop-local.mjs",
     "build": "next build",

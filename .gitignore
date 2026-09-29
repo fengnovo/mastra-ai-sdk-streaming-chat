@@ -12,3 +12,4 @@ data/*.db-*
 workspace/*
 !workspace/README.md
 data/
+public/

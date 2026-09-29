@@ -10,7 +10,7 @@ export const stateFile = path.join(runtimeDirectory, 'processes.json');
 export const services = [
   { name: 'studio', script: 'studio', port: 4111, readyUrl: 'http://127.0.0.1:4111/api/agents' },
   { name: 'worker', script: 'mastra:worker', port: 4112, readyUrl: 'http://127.0.0.1:4112/health' },
-  { name: 'web', script: 'dev', port: 3000, readyUrl: 'http://127.0.0.1:3000/api/health' },
+  { name: 'web', script: 'dev:1', port: 3031, readyUrl: 'http://127.0.0.1:3031/api/health' },
 ];
 
 export async function readState() {

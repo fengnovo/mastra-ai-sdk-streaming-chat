@@ -15,7 +15,7 @@ test('package exposes API and worker lifecycle commands', () => {
   assert.match(pkg.scripts['mastra:worker'], /--env \.env.local/);
   assert.match(pkg.scripts['mastra:worker'], /PORT=4112/);
   assert.match(pkg.scripts['mastra:api'], /--env \.env.local/);
-  assert.match(pkg.scripts.dev, /MASTRA_WORKERS=false/);
+  assert.match(pkg.scripts['dev:1'], /MASTRA_WORKERS=false/);
 });
 
 test('split API and Worker require shared Postgres and Redis', () => {

@@ -76,24 +76,24 @@ pnpm check
 pnpm typecheck
 ```
 
-确认 `/Users/keen/Desktop/code/projects/chat/infra/compose.yaml` 中现有的 PostgreSQL 和 Redis 已在运行。按 [本地后台任务运行说明](docs/background-runtime.md) 创建 `mastra_streaming_chat` 数据库；本项目使用 PostgreSQL `55433` 和 Redis 逻辑库 `15`（端口 `56379`）。一条命令启动项目（自动构建 Worker）：
+确认 `/Users/keen/Desktop/code/projects/chat/infra/compose.yaml` 中现有的 PostgreSQL 和 Redis 已在运行。按 [本地后台任务运行说明](docs/background-runtime.md) 创建 `mastra_streaming_chat` 数据库；本项目使用 PostgreSQL `55433` 和 Redis 逻辑库 `15`（端口 `56379`）。一条命令启动项目（自动构建 Mastra API 和 Worker）：
 
 ```bash
-pnpm local:start
+pnpm dev
 ```
 
 关闭本项目的 Next.js、Mastra Studio/API 和 Worker：
 
 ```bash
-pnpm local:stop
+pnpm dev:close
 ```
 
-脚本只管理由 `local:start` 启动的进程，不会关闭共用的 PostgreSQL、Redis。日志保存在 `.local-runtime/`。
+脚本只管理由 `pnpm dev` 启动的进程，不会关闭共用的 PostgreSQL、Redis。日志保存在 `.local-runtime/`。
 
 打开：
 
 ```text
-http://localhost:3000
+http://localhost:3031
 ```
 
 ## 4. Mastra Studio
