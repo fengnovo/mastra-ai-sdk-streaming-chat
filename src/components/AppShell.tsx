@@ -15,6 +15,9 @@ import {
 
 type Health = {
   aiConfigured: boolean;
+  model: string;
+  providerBaseURL: string;
+  storage: string;
 };
 
 const INITIAL_SESSION = createChatSession('ssr-thread', 0);
@@ -29,15 +32,20 @@ export function AppShell() {
 
   useEffect(() => {
     fetch('/api/health')
-      .then(response => response.json())
+      .then((response) => response.json())
       .then(setHealth)
       .catch(() => setHealth(null));
   }, []);
 
   useEffect(() => {
-    const legacyThreadId = window.localStorage.getItem(LEGACY_THREAD_STORAGE_KEY);
+    const legacyThreadId = window.localStorage.getItem(
+      LEGACY_THREAD_STORAGE_KEY,
+    );
     const fallback = createChatSession(legacyThreadId ?? crypto.randomUUID());
-    const restored = parseChatSessions(window.localStorage.getItem(CHAT_SESSIONS_STORAGE_KEY), fallback);
+    const restored = parseChatSessions(
+      window.localStorage.getItem(CHAT_SESSIONS_STORAGE_KEY),
+      fallback,
+    );
     setSessions(restored);
     setActiveSessionId(restored[0].id);
     setSessionsLoaded(true);
@@ -46,55 +54,75 @@ export function AppShell() {
   useEffect(() => {
     if (!sessionsLoaded) return;
     try {
-      window.localStorage.setItem(CHAT_SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+      window.localStorage.setItem(
+        CHAT_SESSIONS_STORAGE_KEY,
+        JSON.stringify(sessions),
+      );
       window.localStorage.setItem(LEGACY_THREAD_STORAGE_KEY, activeSessionId);
     } catch {
       // Keep the chat usable if browser storage is unavailable or full.
     }
   }, [activeSessionId, sessions, sessionsLoaded]);
 
-  const activeSession = sessions.find(session => session.id === activeSessionId) ?? sessions[0];
+  const activeSession =
+    sessions.find((session) => session.id === activeSessionId) ?? sessions[0];
 
   const createNewSession = useCallback(() => {
     const session = createChatSession(crypto.randomUUID());
-    setSessions(current => [session, ...current].slice(0, 20));
+    setSessions((current) => [session, ...current].slice(0, 20));
     setActiveSessionId(session.id);
   }, []);
 
   const updateSession = useCallback(
-    (sessionId: string, patch: Partial<Pick<ChatSession, 'title' | 'messages'>>) => {
-      setSessions(current => updateChatSession(current, sessionId, patch));
+    (
+      sessionId: string,
+      patch: Partial<Pick<ChatSession, 'title' | 'messages'>>,
+    ) => {
+      setSessions((current) => updateChatSession(current, sessionId, patch));
     },
     [],
   );
 
   const updateSessionMessages = useCallback(
-    (sessionId: string, messages: UIMessage[]) => updateSession(sessionId, { messages }),
+    (sessionId: string, messages: UIMessage[]) =>
+      updateSession(sessionId, { messages }),
     [updateSession],
   );
 
   return (
-    <main className="app-shell">
+    <main className='app-shell'>
       <FeatureRail
         sessions={sessions}
         activeSessionId={activeSession.id}
         onNewSession={createNewSession}
         onSelectSession={setActiveSessionId}
       />
-      <div className="workspace">
+      <div className='workspace'>
         {!health?.aiConfigured && health ? (
-          <div className="config-warning">
-            先复制 <code>.env.example</code> 为 <code>.env.local</code>，填入 AI_API_KEY；其余功能已接好。
+          <div className='config-warning'>
+            先复制 <code>.env.example</code> 为 <code>.env.local</code>，填入
+            AI_API_KEY；其余功能已接好。
           </div>
         ) : null}
-        <div className={workflowOpen ? 'workspace-grid workflow-open' : 'workspace-grid workflow-collapsed'}>
+        <div
+          className={
+            workflowOpen
+              ? 'workspace-grid workflow-open'
+              : 'workspace-grid workflow-collapsed'
+          }
+        >
           <ChatPanel
             key={activeSession.id}
             session={activeSession}
-            onSessionTitleChange={(sessionId, title) => updateSession(sessionId, { title })}
+            onSessionTitleChange={(sessionId, title) =>
+              updateSession(sessionId, { title })
+            }
             onSessionMessagesChange={updateSessionMessages}
           />
-          <WorkflowPanel expanded={workflowOpen} onExpandedChange={setWorkflowOpen} />
+          <WorkflowPanel
+            expanded={workflowOpen}
+            onExpandedChange={setWorkflowOpen}
+          />
         </div>
       </div>
     </main>

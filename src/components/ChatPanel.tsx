@@ -12,13 +12,28 @@ type ChatPanelProps = {
   onSessionMessagesChange: (sessionId: string, messages: UIMessage[]) => void;
 };
 
+function getThreadId() {
+  if (typeof window === 'undefined') return 'ssr-thread';
+  const key = 'mastra-demo-thread-id';
+  const existing = window.localStorage.getItem(key);
+  if (existing) return existing;
+  const value = crypto.randomUUID();
+  window.localStorage.setItem(key, value);
+  return value;
+}
+
 const examples = [
-  '请计算 37 × 48，必须调用计算器工具。',
   '查询订单 A1001，然后计算订单金额加 10% 服务费，一步一步调用工具。',
-  '记住我喜欢 TypeScript。下一轮我会问你还记不记得。',
+  '请委托 research 子代理搜索 Mastra 最近一个版本有什么新能力。',
+  '请委托 coding 子代理：在 workspace 里创建 hello.ts，然后执行 node --version 和 ls -la 验证。',
+  '请调用本地 MCP 的 project-capabilities 工具，告诉我这条链路是否真的走了 MCP。',
 ];
 
-export function ChatPanel({ session, onSessionTitleChange, onSessionMessagesChange }: ChatPanelProps) {
+export function ChatPanel({
+  session,
+  onSessionTitleChange,
+  onSessionMessagesChange,
+}: ChatPanelProps) {
   const [input, setInput] = useState('');
   const threadId = session.id;
   const scrollAnchor = useRef<HTMLDivElement>(null);
@@ -62,7 +77,10 @@ export function ChatPanel({ session, onSessionTitleChange, onSessionMessagesChan
     }
     setInput('');
     await sendMessage({ text: value });
-    setTimeout(() => scrollAnchor.current?.scrollIntoView({ behavior: 'smooth' }), 20);
+    setTimeout(
+      () => scrollAnchor.current?.scrollIntoView({ behavior: 'smooth' }),
+      20,
+    );
   }
 
   function onSubmit(event: FormEvent) {
@@ -71,16 +89,29 @@ export function ChatPanel({ session, onSessionTitleChange, onSessionMessagesChan
   }
 
   return (
-    <section className="chat-panel panel">
-      <div className="messages">
+    <section className='chat-panel panel'>
+      <header className='panel-head'>
+        <div className='live-pill'>
+          <span className={isRunning ? 'pulse-dot active' : 'pulse-dot'} />
+          {isRunning ? 'streaming' : 'ready'}
+        </div>
+      </header>
+
+      <div className='messages'>
         {messages.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-logo">M</div>
-            <h3>先用这三个请求验证核心能力</h3>
-            <p>第二个请求会触发「查订单 → 再计算」的多步工具循环。</p>
-            <div className="example-grid">
-              {examples.map(example => (
-                <button type="button" key={example} onClick={() => void submit(example)}>
+          <div className='empty-state'>
+            <div className='empty-logo'>M</div>
+            <h3>直接用下面请求验证真实能力</h3>
+            <p>
+              Web Search 需要 TAVILY_API_KEY；文件与命令默认限制在 ./workspace。
+            </p>
+            <div className='example-grid'>
+              {examples.map((example) => (
+                <button
+                  type='button'
+                  key={example}
+                  onClick={() => void submit(example)}
+                >
                   {example}
                 </button>
               ))}
@@ -88,26 +119,30 @@ export function ChatPanel({ session, onSessionTitleChange, onSessionMessagesChan
           </div>
         ) : null}
 
-        {messages.map(message => (
+        {messages.map((message) => (
           <article className={`message ${message.role}`} key={message.id}>
-            <div className="avatar">{message.role === 'user' ? '你' : 'M'}</div>
-            <div className="bubble">
-              <div className="message-role">{message.role === 'user' ? 'USER' : 'MASTRA AGENT'}</div>
+            <div className='avatar'>{message.role === 'user' ? '你' : 'M'}</div>
+            <div className='bubble'>
+              <div className='message-role'>
+                {message.role === 'user' ? 'USER' : 'MASTRA AGENT'}
+              </div>
               {message.parts.map((part, index) => (
                 <MessagePart key={`${message.id}-${index}`} part={part} />
               ))}
             </div>
           </article>
         ))}
-        {error ? <div className="error-banner">请求失败：{error.message}</div> : null}
+        {error ? (
+          <div className='error-banner'>请求失败：{error.message}</div>
+        ) : null}
         <div ref={scrollAnchor} />
       </div>
 
-      <form className="composer" onSubmit={onSubmit}>
+      <form className='composer' onSubmit={onSubmit}>
         <textarea
           value={input}
-          onChange={event => setInput(event.target.value)}
-          onKeyDown={event => {
+          onChange={(event) => setInput(event.target.value)}
+          onKeyDown={(event) => {
             if (
               event.key === 'Enter' &&
               !event.shiftKey &&
@@ -118,17 +153,25 @@ export function ChatPanel({ session, onSessionTitleChange, onSessionMessagesChan
               void submit(input);
             }
           }}
-          placeholder="输入消息；Enter 发送，Shift+Enter 换行"
+          placeholder='输入消息；Enter 发送，Shift+Enter 换行'
           rows={3}
         />
-        <div className="composer-actions">
-          <span className="thread-label">thread: {threadId.slice(0, 8)}…</span>
+        <div className='composer-actions'>
+          <span className='thread-label'>thread: {threadId.slice(0, 8)}…</span>
           {isRunning ? (
-            <button type="button" className="secondary-button" onClick={() => stop()}>
+            <button
+              type='button'
+              className='secondary-button'
+              onClick={() => stop()}
+            >
               停止
             </button>
           ) : (
-            <button type="submit" className="primary-button" disabled={!input.trim()}>
+            <button
+              type='submit'
+              className='primary-button'
+              disabled={!input.trim()}
+            >
               发送 ↗
             </button>
           )}
