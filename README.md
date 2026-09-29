@@ -345,3 +345,34 @@ find node_modules/.pnpm -maxdepth 1 -type d -name '@mastra+core@1.71.0*'
 ```
 
 正常目标是核心 peer 环境只解析成一套。不要用 `as any` 把问题藏掉。
+
+## v3: 实时执行过程 UI
+
+聊天页面现在把 AI SDK 的 `message.parts` 组织成三层，而不是把工具卡片散落在正文里：
+
+```text
+Reasoning Summary（可核验执行摘要，不是原始隐藏思维链）
+  ↓
+Execution Trace
+  Planning
+  → Tool / MCP / Sub-Agent / Workflow
+  → 每一步真实 input / output / error
+  ↓
+Final Answer
+```
+
+`useChat` 在流式接收到 tool part 状态变化时会触发重新渲染，因此时间线会从“执行中”更新为“完成/失败”。Mastra 的 `handleChatStream(..., version: 'v7')` 继续负责把 Agent 流转换成 AI SDK v7 UI Message Stream。
+
+建议用下面几条验证：
+
+```text
+查询订单 A1001，然后计算订单金额加 10% 服务费，一步一步调用工具。
+
+请委托 coding 子代理：在 workspace 创建 demo.ts，再执行 ls -la 验证。
+
+请调用本地 MCP 的 project-capabilities 工具验证 MCP 链路。
+
+请委托 research 子代理搜索 Mastra 最近的更新。（需要 TAVILY_API_KEY）
+```
+
+说明：前端不展示模型内部原始隐藏 chain-of-thought。Reasoning Summary 只描述从真实 Agent/Tool/MCP/Workflow 事件可以核验的执行状态；具体工具输入输出可在每个步骤中展开查看。

@@ -1,9 +1,11 @@
 'use client';
 
-import { FormEvent, useMemo, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
 import { MessagePart } from '@/components/MessagePart';
+import { AssistantMessage } from '@/components/AssistantMessage';
+import { PendingExecution } from '@/components/ExecutionTrace';
 import { createSessionTitle, type ChatSession } from '@/lib/chat-sessions';
 
 type ChatPanelProps = {
@@ -35,7 +37,7 @@ export function ChatPanel({
   onSessionMessagesChange,
 }: ChatPanelProps) {
   const [input, setInput] = useState('');
-  const threadId = session.id;
+  const [threadId] = useState(getThreadId);
   const scrollAnchor = useRef<HTMLDivElement>(null);
 
   const transport = useMemo(
@@ -68,6 +70,14 @@ export function ChatPanel({
   });
 
   const isRunning = status === 'submitted' || status === 'streaming';
+  const lastMessage = messages.at(-1);
+  const waitingForAssistant = isRunning && lastMessage?.role === 'user';
+
+  useEffect(() => {
+    scrollAnchor.current?.scrollIntoView({
+      behavior: isRunning ? 'smooth' : 'auto',
+    });
+  }, [messages, status, isRunning]);
 
   async function submit(text: string) {
     const value = text.trim();
@@ -90,20 +100,14 @@ export function ChatPanel({
 
   return (
     <section className='chat-panel panel'>
-      <header className='panel-head'>
-        <div className='live-pill'>
-          <span className={isRunning ? 'pulse-dot active' : 'pulse-dot'} />
-          {isRunning ? 'streaming' : 'ready'}
-        </div>
-      </header>
-
       <div className='messages'>
         {messages.length === 0 ? (
           <div className='empty-state'>
             <div className='empty-logo'>M</div>
             <h3>直接用下面请求验证真实能力</h3>
             <p>
-              Web Search 需要 TAVILY_API_KEY；文件与命令默认限制在 ./workspace。
+              显示可核验的 Agent / Tool / MCP / Workflow
+              事件，而不是伪造隐藏思维链。
             </p>
             <div className='example-grid'>
               {examples.map((example) => (
@@ -119,19 +123,40 @@ export function ChatPanel({
           </div>
         ) : null}
 
-        {messages.map((message) => (
-          <article className={`message ${message.role}`} key={message.id}>
-            <div className='avatar'>{message.role === 'user' ? '你' : 'M'}</div>
-            <div className='bubble'>
-              <div className='message-role'>
-                {message.role === 'user' ? 'USER' : 'MASTRA AGENT'}
+        {messages.map((message, messageIndex) => {
+          const isLastAssistantStreaming =
+            isRunning &&
+            message.role === 'assistant' &&
+            messageIndex === messages.length - 1;
+
+          if (message.role === 'assistant') {
+            return (
+              <AssistantMessage
+                key={message.id}
+                message={message}
+                isStreaming={isLastAssistantStreaming}
+              />
+            );
+          }
+
+          return (
+            <article className={`message ${message.role}`} key={message.id}>
+              <div className='avatar'>
+                {message.role === 'user' ? '你' : 'M'}
               </div>
-              {message.parts.map((part, index) => (
-                <MessagePart key={`${message.id}-${index}`} part={part} />
-              ))}
-            </div>
-          </article>
-        ))}
+              <div className='bubble'>
+                <div className='message-role'>
+                  {message.role === 'user' ? 'USER' : 'MASTRA AGENT'}
+                </div>
+                {message.parts.map((part, index) => (
+                  <MessagePart key={`${message.id}-${index}`} part={part} />
+                ))}
+              </div>
+            </article>
+          );
+        })}
+
+        {waitingForAssistant ? <PendingExecution /> : null}
         {error ? (
           <div className='error-banner'>请求失败：{error.message}</div>
         ) : null}

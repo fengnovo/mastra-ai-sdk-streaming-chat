@@ -18,6 +18,8 @@ const required = [
   'src/mastra/workflows/approval-workflow.ts',
   'src/app/api/chat/route.ts',
   'src/components/ChatPanel.tsx',
+  'src/components/AssistantMessage.tsx',
+  'src/components/ExecutionTrace.tsx',
   'src/components/WorkflowPanel.tsx',
 ];
 

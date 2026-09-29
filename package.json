@@ -1,6 +1,6 @@
 {
   "name": "mastra-ai-sdk-streaming-chat",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.17.1",
